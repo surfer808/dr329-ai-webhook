@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as ReactDOMServer from 'react-dom/server';
-import { EmailTemplate } from '@/app/post-call-webhook-email';
+import { EmailTemplate } from '@/app/components/shared/post-call-webhook-email';
 import nodemailer from 'nodemailer';
 
 export async function GET() {

@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
-import * as ReactDOMServer from 'react-dom/server';
-import { EmailTemplate } from '@/app/components/shared/post-call-webhook-email';
+import { EmailTemplate } from '@/components/shared/post-call-webhook-email';
 import nodemailer from 'nodemailer';
 
 export async function POST(req: Request) {
   try {
-    // Parse the request body for transcript and recipient
+    // Parse the request body for agentId and recipient
     const body = await req.json();
-    const { transcript, to } = body;
+    const { agentId, to } = body;
 
-    // Render the React component to HTML string using ReactDOMServer
-    const emailComponent = EmailTemplate({ transcript });
-    const emailHtml = ReactDOMServer.renderToString(emailComponent);
+    // Use the JSX directly
+    const emailHtml = `<html>${EmailTemplate({ agentId })}</html>`;
     console.log('Email HTML generated with length:', emailHtml.length);
 
     // Set up Nodemailer SMTP transport

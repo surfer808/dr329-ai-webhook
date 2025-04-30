@@ -7,8 +7,8 @@ import { EmailTemplate } from '@/app/components/shared/post-call-webhook-email';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Handler for GET requests
-export async function GET() {
-  return NextResponse.json({ status: "API ready" });
+export function GET() {
+  return NextResponse.json({ ok: true });
 }
 
 // Handler for POST requests - centralized email sending

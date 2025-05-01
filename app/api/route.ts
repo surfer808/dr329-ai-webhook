@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { Resend } from 'resend';
-import { EmailTemplate } from '@/components/email/post-call-webhook-email';
+import { render } from '@react-email/render';
+import EmailTemplate from '@/components/email/post-call-webhook-email';
+import * as React from 'react';
 
 // Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
 // Handler for GET requests
 export async function GET() {
@@ -13,6 +15,31 @@ export async function GET() {
 
 // Handler for POST requests - centralized email sending
 export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const {
+    agentId = '',
+    patientName = '',
+    phoneNumber = '',
+    email = '',
+    dateOfBirth = '',
+    insuranceProvider = '',
+    reasonForVisit = '',
+    transcript = '',
+  } = body;
+
+  const html = render(
+    React.createElement(EmailTemplate, {
+      agentId,
+      patientName,
+      phoneNumber,
+      email,
+      dateOfBirth,
+      insuranceProvider,
+      reasonForVisit,
+      transcript,
+    })
+  );
+
   try {
     // Send email to user
     console.log('Sending email to info@aisolutionshawaii.com');

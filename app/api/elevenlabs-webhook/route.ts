@@ -37,8 +37,9 @@ export async function POST(req: Request) {
     from: process.env.RESEND_FROM_EMAIL!,
     to: ['info@aisolutionshawaii.com'],
     subject: 'New patient intake received',
-    html: emailHtml,
+    html: emailHtml,A
   });
 
   return NextResponse.json({ ok: true });
 }
+Q

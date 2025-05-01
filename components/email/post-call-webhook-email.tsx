@@ -21,7 +21,7 @@ interface EmailTemplateProps {
   dob?: string;
   insurance?: string;
   reason?: string;
-  transcript?: string;
+  transcript?: any;
 }
 
 const EmailTemplate = ({
@@ -44,7 +44,7 @@ const EmailTemplate = ({
             <Text><b>Date of Birth:</b> {dob}</Text>
             <Text><b>Insurance:</b> {insurance}</Text>
             <Text><b>Reason:</b> {reason}</Text>
-            <Text><b>Transcript:</b> {transcript}</Text>
+            <Text><b>Transcript:</b> {typeof transcript === 'object' ? JSON.stringify(transcript, null, 2) : transcript}</Text>
 
             {/* Main Content Area */}
             <Section className="bg-[#003366] rounded-[8px] p-[24px] mt-[24px]">

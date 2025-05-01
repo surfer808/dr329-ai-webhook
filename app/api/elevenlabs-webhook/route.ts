@@ -1,44 +1,22 @@
 import { NextResponse } from 'next/server';
+import { Resend } from 'resend';
 import { EmailTemplate } from '@/components/email/post-call-webhook-email';
-import nodemailer from 'nodemailer';
+
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function POST(req: Request) {
-  try {
-    // Parse the request body for agentId and recipient
-    const body = await req.json();
-    const { agentId, to } = body;
+  const body = await req.json();
 
-    // Use the JSX directly
-    const emailHtml = `<html>${EmailTemplate({ agentId })}</html>`;
-    console.log('Email HTML generated with length:', emailHtml.length);
+  // Adjust these field names to match ElevenLabs payload
+  const agentId    = body.agentId ?? 'unknown-agent';
+  // The current template only accepts agentId, so we pass that
 
-    // Set up Nodemailer SMTP transport
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.resend.com',
-      port: Number(process.env.SMTP_PORT) || 465,
-      secure: true, // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER || 'resend',
-        pass: process.env.SMTP_PASS || process.env.RESEND_API_KEY,
-      },
-    });
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL!,          // e.g. "info@aisolutionshawaii.com"
+    to:   ['info@aisolutionshawaii.com'],
+    subject: 'New patient intake received',
+    react: <EmailTemplate agentId={agentId} />, 
+  });
 
-    // Send the email with HTML
-    const info = await transporter.sendMail({
-      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-      to: to || 'info@aisolutionshawaii.com',
-      subject: 'Your Conversational AI Agent is Ready!',
-      html: emailHtml,
-    });
-
-    console.log('Email sent successfully:', info);
-    return NextResponse.json({ success: true, info });
-  } catch (error) {
-    console.error('Failed to send email:', error);
-    return NextResponse.json({ error: 'Failed to send email', details: error }, { status: 500 });
-  }
-}
-
-export async function GET() {
   return NextResponse.json({ ok: true });
-} 
+}

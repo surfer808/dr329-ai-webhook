@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     transcript,
   } = body;
 
-  const html = render(
+  const html: string = await render(
     React.createElement(EmailTemplate, {
       agentId: process.env.ELEVENLABS_AGENT_ID || '',
       patientName: patient_name || '',
@@ -30,14 +30,14 @@ export async function POST(req: Request) {
       transcript: transcript || '',
     })
   );
-  console.log('DEBUG-email-html:', typeof html === 'string' ? html.slice(0, 200) : html);
+  console.log('DEBUG-email-html:', html.slice(0, 200));
 
   await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to: ['info@aisolutionshawaii.com'],
     subject: `New Patient Intake – ${patient_name}`,
-    html: typeof html === 'string' ? html : '',
-    text: typeof html === 'string' ? html.replace(/<[^>]+>/g, '') : '',
+    html,
+    text: html.replace(/<[^>]+>/g, ''),
   });
 
   return NextResponse.json({ ok: true });

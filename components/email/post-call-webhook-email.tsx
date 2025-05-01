@@ -15,24 +15,36 @@ import {
 // Define a proper interface for the component props
 interface EmailTemplateProps {
   agentId?: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  dob?: string;
+  insurance?: string;
+  reason?: string;
+  transcript?: string;
 }
 
-const EmailTemplate = ({ agentId }: EmailTemplateProps) => {
+const EmailTemplate = ({
+  agentId, name, phone, email, dob, insurance, reason, transcript,
+}: EmailTemplateProps) => {
   // The agentId might be used for tracking or customization in the future
   // Currently not used but required by API route
   return (
     <Html>
       <Head />
-      <Preview>Your Conversational AI Agent is Ready to Chat!</Preview>
+      <Preview>New patient intake received</Preview>
       <Tailwind>
         <Body className="bg-[#f4f4f5] font-sans py-[40px]">
           <Container className="mx-auto bg-white rounded-[8px] p-[20px] max-w-[600px]">
-            {/* Header */}
-            <Section className="text-center mt-[32px]">
-              <Heading className="text-[28px] font-bold text-[#0066CC] m-0">
-                Almost Ready!
-              </Heading>
-            </Section>
+            <Heading>New Patient Intake</Heading>
+            <Text><b>Agent ID:</b> {agentId}</Text>
+            <Text><b>Name:</b> {name}</Text>
+            <Text><b>Phone:</b> {phone}</Text>
+            <Text><b>Email:</b> {email}</Text>
+            <Text><b>Date of Birth:</b> {dob}</Text>
+            <Text><b>Insurance:</b> {insurance}</Text>
+            <Text><b>Reason:</b> {reason}</Text>
+            <Text><b>Transcript:</b> {transcript}</Text>
 
             {/* Main Content Area */}
             <Section className="bg-[#003366] rounded-[8px] p-[24px] mt-[24px]">
@@ -99,4 +111,5 @@ const EmailTemplate = ({ agentId }: EmailTemplateProps) => {
   );
 };
 
-export { EmailTemplate }; 
+export { EmailTemplate };
+export default EmailTemplate; 

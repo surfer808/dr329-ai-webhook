@@ -13,21 +13,27 @@ import {
 } from '@react-email/components';
 
 // Define a proper interface for the component props
-interface EmailTemplateProps {
-  agentId?: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  email?: string;
-  dob?: string;
-  insurance?: string;
-  reason?: string;
-  transcript?: any;
+interface IntakeEmailProps {
+  agentId: string;
+  patientName: string;
+  phoneNumber: string;
+  email: string;
+  dateOfBirth: string;
+  insuranceProvider: string;
+  reasonForVisit: string;
+  transcript: string;
 }
 
 const EmailTemplate = ({
-  agentId, firstName, lastName, phone, email, dob, insurance, reason, transcript,
-}: EmailTemplateProps) => {
+  agentId,
+  patientName,
+  phoneNumber,
+  email,
+  dateOfBirth,
+  insuranceProvider,
+  reasonForVisit,
+  transcript,
+}: IntakeEmailProps) => {
   // The agentId might be used for tracking or customization in the future
   // Currently not used but required by API route
   return (
@@ -39,21 +45,14 @@ const EmailTemplate = ({
           <Container className="mx-auto bg-white rounded-[8px] p-[20px] max-w-[600px]">
             <Heading>New Patient Intake</Heading>
             <Text><b>Agent ID:</b> {agentId}</Text>
-            <Text><b>Name:</b> {firstName} {lastName}</Text>
-            <Text><b>Phone:</b> {phone}</Text>
+            <Text><b>Name:</b> {patientName}</Text>
+            <Text><b>Phone:</b> {phoneNumber}</Text>
             <Text><b>Email:</b> {email}</Text>
-            <Text><b>Date of Birth:</b> {dob}</Text>
-            <Text><b>Insurance:</b> {insurance}</Text>
-            <Text><b>Reason:</b> {reason}</Text>
-            <Text>
-              <b>Transcript:</b>
-              <br />
-              {typeof transcript === 'string'
-                ? transcript
-                : transcript && typeof transcript === 'object'
-                  ? <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{JSON.stringify(transcript, null, 2)}</pre>
-                  : ''}
-            </Text>
+            <Text><b>Date of Birth:</b> {dateOfBirth}</Text>
+            <Text><b>Insurance:</b> {insuranceProvider}</Text>
+            <Text><b>Reason:</b> {reasonForVisit}</Text>
+            <Text className="mt-[24px] font-semibold">Transcript</Text>
+            <pre className="whitespace-pre-wrap">{transcript}</pre>
 
             {/* Main Content Area */}
             <Section className="bg-[#003366] rounded-[8px] p-[24px] mt-[24px]">
@@ -120,5 +119,4 @@ const EmailTemplate = ({
   );
 };
 
-export { EmailTemplate };
 export default EmailTemplate; 

@@ -15,7 +15,8 @@ import {
 // Define a proper interface for the component props
 interface EmailTemplateProps {
   agentId?: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   email?: string;
   dob?: string;
@@ -25,7 +26,7 @@ interface EmailTemplateProps {
 }
 
 const EmailTemplate = ({
-  agentId, name, phone, email, dob, insurance, reason, transcript,
+  agentId, firstName, lastName, phone, email, dob, insurance, reason, transcript,
 }: EmailTemplateProps) => {
   // The agentId might be used for tracking or customization in the future
   // Currently not used but required by API route
@@ -38,13 +39,21 @@ const EmailTemplate = ({
           <Container className="mx-auto bg-white rounded-[8px] p-[20px] max-w-[600px]">
             <Heading>New Patient Intake</Heading>
             <Text><b>Agent ID:</b> {agentId}</Text>
-            <Text><b>Name:</b> {name}</Text>
+            <Text><b>Name:</b> {firstName} {lastName}</Text>
             <Text><b>Phone:</b> {phone}</Text>
             <Text><b>Email:</b> {email}</Text>
             <Text><b>Date of Birth:</b> {dob}</Text>
             <Text><b>Insurance:</b> {insurance}</Text>
             <Text><b>Reason:</b> {reason}</Text>
-            <Text><b>Transcript:</b> {typeof transcript === 'object' ? JSON.stringify(transcript, null, 2) : transcript}</Text>
+            <Text>
+              <b>Transcript:</b>
+              <br />
+              {typeof transcript === 'string'
+                ? transcript
+                : transcript && typeof transcript === 'object'
+                  ? <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{JSON.stringify(transcript, null, 2)}</pre>
+                  : ''}
+            </Text>
 
             {/* Main Content Area */}
             <Section className="bg-[#003366] rounded-[8px] p-[24px] mt-[24px]">

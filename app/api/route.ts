@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { Resend } from 'resend';
-import { EmailTemplate } from '@/components/shared/post-call-webhook-email';
+import { EmailTemplate } from '@/components/email/post-call-webhook-email';
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);

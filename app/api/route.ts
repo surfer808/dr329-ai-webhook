@@ -17,7 +17,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
-    agentId = '',
     patientName = '',
     phoneNumber = '',
     email = '',
@@ -29,7 +28,6 @@ export async function POST(req: NextRequest) {
 
   const html = render(
     React.createElement(EmailTemplate, {
-      agentId,
       patientName,
       phoneNumber,
       email,
@@ -49,7 +47,15 @@ export async function POST(req: NextRequest) {
       from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
       to: 'info@aisolutionshawaii.com',
       subject: 'Your Conversational AI agent is ready to chat!',
-      react: EmailTemplate({ agentId: '' }), // Pass empty agentId to satisfy the prop requirement
+      react: EmailTemplate({
+        patientName,
+        phoneNumber,
+        email,
+        dateOfBirth,
+        insuranceProvider,
+        reasonForVisit,
+        transcript
+      }),
     });
     
     return NextResponse.json({ success: true, data });

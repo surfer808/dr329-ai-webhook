@@ -20,7 +20,6 @@ export async function POST(req: Request) {
 
   const html: string = await render(
     React.createElement(EmailTemplate, {
-      agentId: process.env.ELEVENLABS_AGENT_ID || '',
       patientName: patient_name || '',
       phoneNumber: phone_number || '',
       email: email || '',

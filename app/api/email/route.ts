@@ -10,7 +10,6 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
   const {
-    agentId = '',
     patientName = '',
     phoneNumber = '',
     email = '',
@@ -22,14 +21,13 @@ export async function POST(req: Request) {
 
   const html = render(
     React.createElement(EmailTemplate, {
-      agentId,
-      patientName,
-      phoneNumber,
-      email,
-      dateOfBirth,
-      insuranceProvider,
-      reasonForVisit,
-      transcript,
+      patientName: patientName || '',
+      phoneNumber: phoneNumber || '',
+      email: email || '',
+      dateOfBirth: dateOfBirth || '',
+      insuranceProvider: insuranceProvider || '',
+      reasonForVisit: reasonForVisit || '',
+      transcript: transcript || '',
     })
   );
 

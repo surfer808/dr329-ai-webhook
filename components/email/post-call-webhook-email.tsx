@@ -13,26 +13,24 @@ import {
 } from '@react-email/components';
 
 // Define a proper interface for the component props
-interface IntakeEmailProps {
-  agentId: string;
-  patientName: string;
-  phoneNumber: string;
-  email: string;
-  dateOfBirth: string;
-  insuranceProvider: string;
-  reasonForVisit: string;
-  transcript: string;
+export interface IntakeEmailProps {
+  patientName?: string;
+  phoneNumber?: string;
+  email?: string;
+  dateOfBirth?: string;
+  insuranceProvider?: string;
+  reasonForVisit?: string;
+  transcript?: string;
 }
 
 const EmailTemplate = ({
-  agentId,
-  patientName,
-  phoneNumber,
-  email,
-  dateOfBirth,
-  insuranceProvider,
-  reasonForVisit,
-  transcript,
+  patientName = '',
+  phoneNumber = '',
+  email = '',
+  dateOfBirth = '',
+  insuranceProvider = '',
+  reasonForVisit = '',
+  transcript = '',
 }: IntakeEmailProps) => {
   // The agentId might be used for tracking or customization in the future
   // Currently not used but required by API route
@@ -44,7 +42,6 @@ const EmailTemplate = ({
         <Body className="bg-[#f4f4f5] font-sans py-[40px]">
           <Container className="mx-auto bg-white rounded-[8px] p-[20px] max-w-[600px]">
             <Heading>New Patient Intake</Heading>
-            <Text><b>Agent ID:</b> {agentId}</Text>
             <Text><b>Name:</b> {patientName}</Text>
             <Text><b>Phone:</b> {phoneNumber}</Text>
             <Text><b>Email:</b> {email}</Text>
@@ -90,7 +87,7 @@ const EmailTemplate = ({
               {/* CTA Button */}
               <div className="text-center">
                 <Button
-                  href={`https://aisolutionshawaii.com/aloha-intake${agentId ? `?agentId=${agentId}` : ''}`}
+                  href={`https://aisolutionshawaii.com/aloha-intake`}
                   className="bg-[#0099FF] text-white px-[24px] py-[12px] rounded-[4px] font-medium no-underline text-[16px] box-border"
                 >
                   Start Your Application

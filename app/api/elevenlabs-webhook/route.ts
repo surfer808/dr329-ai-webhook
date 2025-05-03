@@ -22,6 +22,53 @@ function verifyHmacSignature(
   return computedSignature === signature;
 }
 
+// Helper function to extract data from potentially nested structures
+function extractPatientData(data: any) {
+  console.log('Trying to extract patient data from:', JSON.stringify(data));
+  
+  // Case 1: Direct fields in the payload
+  if (data.patient_name || data.phone_number) {
+    return {
+      patient_name: data.patient_name,
+      phone_number: data.phone_number,
+      email: data.email,
+      date_of_birth: data.date_of_birth,
+      insurance_provider: data.insurance_provider,
+      reason_for_visit: data.reason_for_visit,
+      transcript: data.transcript,
+    };
+  }
+  
+  // Case 2: Fields in a 'data' property
+  if (data.data && typeof data.data === 'object') {
+    return extractPatientData(data.data);
+  }
+  
+  // Case 3: Fields in a 'collected_data' property
+  if (data.collected_data && typeof data.collected_data === 'object') {
+    return extractPatientData(data.collected_data);
+  }
+  
+  // Case 4: Fields in a 'fields' property
+  if (data.fields && typeof data.fields === 'object') {
+    return extractPatientData(data.fields);
+  }
+  
+  // Case 5: Looking for specific properties that match our expected format
+  const possibleProps = Object.keys(data).filter(key => 
+    typeof data[key] === 'object' && data[key] !== null
+  );
+  
+  for (const prop of possibleProps) {
+    if (data[prop].patient_name || data[prop].phone_number) {
+      return extractPatientData(data[prop]);
+    }
+  }
+  
+  // Return empty object if nothing found
+  return {};
+}
+
 export async function POST(req: Request) {
   try {
     // Get the raw request body for HMAC verification
@@ -30,7 +77,7 @@ export async function POST(req: Request) {
     
     // Log the headers and raw payload for debugging
     console.log('Headers:', JSON.stringify(Object.fromEntries(req.headers.entries())));
-    console.log('Raw payload:', rawBody.slice(0, 200));
+    console.log('Raw payload:', rawBody.slice(0, 200) + (rawBody.length > 200 ? '...' : ''));
     
     // Skip verification in development or if no webhook secret is set
     const verified = process.env.NODE_ENV === 'development' || 
@@ -49,6 +96,10 @@ export async function POST(req: Request) {
     const body = JSON.parse(rawBody);
     console.log('Received webhook payload:', JSON.stringify(body));
     
+    // Extract patient data from potentially nested structures
+    const extractedData = extractPatientData(body);
+    console.log('Extracted data:', JSON.stringify(extractedData));
+    
     const {
       patient_name,
       phone_number,
@@ -57,10 +108,10 @@ export async function POST(req: Request) {
       insurance_provider,
       reason_for_visit,
       transcript,
-    } = body;
+    } = extractedData;
 
     // Log the extracted data
-    console.log('Extracted patient data:', {
+    console.log('Final patient data:', {
       patient_name,
       phone_number,
       email,

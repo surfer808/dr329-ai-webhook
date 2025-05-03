@@ -22,6 +22,12 @@ function verifyHmac(signature: string | null, payload: string): boolean {
   return digest === signature;
 }
 
+// -- Convert any value to string safely
+function toString(x: any) { 
+  return (typeof x === 'string') ? x : 
+    x == null ? '' : JSON.stringify(x, undefined, 2); 
+}
+
 // ‑‑ Walk an arbitrary object and pull out the fields we care about
 function extractPatientData(obj: any): {
   patient_name?: string;
@@ -97,25 +103,26 @@ export async function POST(req: Request) {
     }
 
     /* -------- render e‑mail ------------------- */
-    const html = await render(
-      React.createElement(EmailTemplate, {
-        patientName:       patient.patient_name      || '',
-        phoneNumber:       patient.phone_number      || '',
-        email:             patient.email             || '',
-        dateOfBirth:       patient.date_of_birth     || '',
-        insuranceProvider: patient.insurance_provider|| '',
-        reasonForVisit:    patient.reason_for_visit  || '',
-        transcript:        patient.transcript        || '',
-      }),
-    );
+    const safeProps = {
+      patientName      : toString(patient.patient_name),
+      phoneNumber      : toString(patient.phone_number),
+      email            : toString(patient.email),
+      dateOfBirth      : toString(patient.date_of_birth),
+      insuranceProvider: toString(patient.insurance_provider),
+      reasonForVisit   : toString(patient.reason_for_visit),
+      transcript       : toString(patient.transcript),
+    };
+
+    const emailElement = React.createElement(EmailTemplate, safeProps);
+    const htmlContent = await render(emailElement);
 
     /* -------- send via Resend ------------------ */
     const res = await resend.emails.send({
       from:    process.env.RESEND_FROM_EMAIL!,
       to:      ['info@aisolutionshawaii.com'],
       subject: `New Patient Intake – ${patient.patient_name || 'Unknown'}`,
-      html,
-      text: html.replace(/<[^>]+>/g, ''),
+      html: htmlContent,
+      text: htmlContent.replace(/<[^>]+>/g, ''),
     });
 
     console.log('✅  Email sent:', res.data?.id);

@@ -22,10 +22,17 @@ function verifyHmac(signature: string | null, payload: string): boolean {
   return digest === signature;
 }
 
-// -- Convert any value to string safely
-function toString(x: any) { 
-  return (typeof x === 'string') ? x : 
-    x == null ? '' : JSON.stringify(x, undefined, 2); 
+// helper – turn anything into a printable string
+function toString(x: unknown): string {
+  if (x === null || x === undefined) return '';
+  if (typeof x === 'object') {
+    // ElevenLabs "data_collection" objects all have { value: ... }
+    const maybeVal = (x as Record<string, any>).value;
+    if (typeof maybeVal === 'string' || typeof maybeVal === 'number') {
+      return String(maybeVal);
+    }
+  }
+  return String(x);
 }
 
 // ‑‑ Walk an arbitrary object and pull out the fields we care about

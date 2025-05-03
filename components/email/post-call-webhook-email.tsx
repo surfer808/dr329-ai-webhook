@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
@@ -32,8 +31,6 @@ const EmailTemplate = ({
   reasonForVisit = '',
   transcript = '',
 }: IntakeEmailProps) => {
-  // The agentId might be used for tracking or customization in the future
-  // Currently not used but required by API route
   return (
     <Html>
       <Head />

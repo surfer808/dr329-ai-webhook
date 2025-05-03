@@ -5,151 +5,124 @@ import EmailTemplate from '@/components/email/post-call-webhook-email';
 import * as React from 'react';
 import crypto from 'crypto';
 
+/* ------------------------------------------------------------------ */
+/*  CONFIG                                                            */
+/* ------------------------------------------------------------------ */
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const WEBHOOK_SECRET = process.env.ELEVENLABS_WEBHOOK_SECRET || '';
 
-function verifyHmacSignature(
-  signature: string | null,
-  payload: string,
-  secret: string
-): boolean {
-  if (!signature || !secret) return false;
-  
-  const hmac = crypto.createHmac('sha256', secret);
-  const computedSignature = hmac.update(payload).digest('hex');
-  
-  // Simple string comparison - safer than timing-safe equal for compatibility
-  return computedSignature === signature;
+/* ------------------------------------------------------------------ */
+/*  HELPERS                                                           */
+/* ------------------------------------------------------------------ */
+// ‑‑ Verify ElevenLabs HMAC
+function verifyHmac(signature: string | null, payload: string): boolean {
+  if (!signature || !WEBHOOK_SECRET) return false;
+  const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
+  const digest = hmac.update(payload).digest('hex');
+  return digest === signature;
 }
 
-// Helper function to extract data from potentially nested structures
-function extractPatientData(data: any) {
-  console.log('Trying to extract patient data from:', JSON.stringify(data));
-  
-  // Case 1: Direct fields in the payload
-  if (data.patient_name || data.phone_number) {
+// ‑‑ Walk an arbitrary object and pull out the fields we care about
+function extractPatientData(obj: any): {
+  patient_name?: string;
+  phone_number?: string;
+  email?: string;
+  date_of_birth?: string;
+  insurance_provider?: string;
+  reason_for_visit?: string;
+  transcript?: string;
+} {
+  if (!obj || typeof obj !== 'object') return {};
+
+  // 1 – direct keys
+  if (obj.patient_name || obj.phone_number) {
     return {
-      patient_name: data.patient_name,
-      phone_number: data.phone_number,
-      email: data.email,
-      date_of_birth: data.date_of_birth,
-      insurance_provider: data.insurance_provider,
-      reason_for_visit: data.reason_for_visit,
-      transcript: data.transcript,
+      patient_name: obj.patient_name,
+      phone_number: obj.phone_number,
+      email: obj.email,
+      date_of_birth: obj.date_of_birth,
+      insurance_provider: obj.insurance_provider,
+      reason_for_visit: obj.reason_for_visit,
+      transcript: obj.transcript,
     };
   }
-  
-  // Case 2: Fields in a 'data' property
-  if (data.data && typeof data.data === 'object') {
-    return extractPatientData(data.data);
+
+  // 2 – ElevenLabs "results[0].items[0].collected_data"
+  if (Array.isArray(obj.results) && obj.results[0]?.items?.[0]?.collected_data) {
+    return extractPatientData(obj.results[0].items[0].collected_data);
   }
-  
-  // Case 3: Fields in a 'collected_data' property
-  if (data.collected_data && typeof data.collected_data === 'object') {
-    return extractPatientData(data.collected_data);
-  }
-  
-  // Case 4: Fields in a 'fields' property
-  if (data.fields && typeof data.fields === 'object') {
-    return extractPatientData(data.fields);
-  }
-  
-  // Case 5: Looking for specific properties that match our expected format
-  const possibleProps = Object.keys(data).filter(key => 
-    typeof data[key] === 'object' && data[key] !== null
-  );
-  
-  for (const prop of possibleProps) {
-    if (data[prop].patient_name || data[prop].phone_number) {
-      return extractPatientData(data[prop]);
+
+  // 3 – nested helpers
+  for (const key of [
+    'data',
+    'fields',
+    'collected_data',
+    ...Object.keys(obj).filter(k => typeof obj[k] === 'object'),
+  ]) {
+    if (obj[key]) {
+      const found = extractPatientData(obj[key]);
+      if (Object.keys(found).length) return found;
     }
   }
-  
-  // Return empty object if nothing found
+
   return {};
 }
 
+/* ------------------------------------------------------------------ */
+/*  ROUTE                                                             */
+/* ------------------------------------------------------------------ */
 export async function POST(req: Request) {
   try {
-    // Get the raw request body for HMAC verification
-    const rawBody = await req.text();
-    const signature = req.headers.get('x-elevenlabs-signature');
-    
-    // Log the headers and raw payload for debugging
-    console.log('Headers:', JSON.stringify(Object.fromEntries(req.headers.entries())));
-    console.log('Raw payload:', rawBody.slice(0, 200) + (rawBody.length > 200 ? '...' : ''));
-    
-    // Skip verification in development or if no webhook secret is set
-    const verified = process.env.NODE_ENV === 'development' || 
-                    !WEBHOOK_SECRET || 
-                    verifyHmacSignature(signature, rawBody, WEBHOOK_SECRET);
-    
-    if (!verified && WEBHOOK_SECRET) {
-      console.error('HMAC signature verification failed');
+    /* -------- raw body for signature ---------- */
+    const raw = await req.text();
+    const sig = req.headers.get('x-elevenlabs-signature');
+
+    const dev = process.env.NODE_ENV === 'development';
+    const verified = dev || !WEBHOOK_SECRET || verifyHmac(sig, raw);
+
+    if (!verified) {
+      console.error('❌  HMAC verification failed');
+      return NextResponse.json({ ok: false, error: 'Invalid signature' }, { status: 401 });
+    }
+
+    /* -------- parse + extract data ------------ */
+    const payload = JSON.parse(raw);
+    const patient = extractPatientData(payload);
+
+    if (Object.keys(patient).length === 0) {
       return NextResponse.json(
-        { ok: false, error: 'Invalid signature' },
-        { status: 401 }
+        { ok: false, error: 'No patient data found in payload' },
+        { status: 400 },
       );
     }
-    
-    // Parse the body
-    const body = JSON.parse(rawBody);
-    console.log('Received webhook payload:', JSON.stringify(body));
-    
-    // Extract patient data from potentially nested structures
-    const extractedData = extractPatientData(body);
-    console.log('Extracted data:', JSON.stringify(extractedData));
-    
-    const {
-      patient_name,
-      phone_number,
-      email,
-      date_of_birth,
-      insurance_provider,
-      reason_for_visit,
-      transcript,
-    } = extractedData;
 
-    // Log the extracted data
-    console.log('Final patient data:', {
-      patient_name,
-      phone_number,
-      email,
-      date_of_birth,
-      insurance_provider,
-      reason_for_visit,
-      transcript: transcript ? `${transcript.slice(0, 100)}...` : 'none',
-    });
-
-    const html: string = await render(
+    /* -------- render e‑mail ------------------- */
+    const html = await render(
       React.createElement(EmailTemplate, {
-        patientName: patient_name || '',
-        phoneNumber: phone_number || '',
-        email: email || '',
-        dateOfBirth: date_of_birth || '',
-        insuranceProvider: insurance_provider || '',
-        reasonForVisit: reason_for_visit || '',
-        transcript: transcript || '',
-      })
+        patientName:       patient.patient_name      || '',
+        phoneNumber:       patient.phone_number      || '',
+        email:             patient.email             || '',
+        dateOfBirth:       patient.date_of_birth     || '',
+        insuranceProvider: patient.insurance_provider|| '',
+        reasonForVisit:    patient.reason_for_visit  || '',
+        transcript:        patient.transcript        || '',
+      }),
     );
-    console.log('DEBUG-email-html:', html.slice(0, 200));
 
-    // Send the email
-    const emailResult = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL!,
-      to: ['info@aisolutionshawaii.com'],
-      subject: `New Patient Intake – ${patient_name || 'Unknown'}`,
+    /* -------- send via Resend ------------------ */
+    const res = await resend.emails.send({
+      from:    process.env.RESEND_FROM_EMAIL!,
+      to:      ['info@aisolutionshawaii.com'],
+      subject: `New Patient Intake – ${patient.patient_name || 'Unknown'}`,
       html,
       text: html.replace(/<[^>]+>/g, ''),
     });
 
-    console.log('Email sent successfully:', emailResult);
-    return NextResponse.json({ ok: true, message: 'Email sent successfully' });
-  } catch (error) {
-    console.error('Error processing webhook:', error);
-    return NextResponse.json(
-      { ok: false, error: 'Failed to process webhook' },
-      { status: 500 }
-    );
+    console.log('✅  Email sent:', res.data?.id);
+    return NextResponse.json({ ok: true });
+
+  } catch (err) {
+    console.error('🛑  Webhook error:', err);
+    return NextResponse.json({ ok: false, error: 'Internal error' }, { status: 500 });
   }
 }

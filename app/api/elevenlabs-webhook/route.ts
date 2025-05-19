@@ -90,12 +90,15 @@ export async function POST(req: Request) {
     const raw = await req.text();
     const sig = req.headers.get('x-elevenlabs-signature');
 
+    // Log incoming payload for debugging
+    console.log('📝 Incoming webhook payload:', raw);
+
     const dev = process.env.NODE_ENV === 'development';
     const verified = dev || !WEBHOOK_SECRET || verifyHmac(sig, raw);
 
     if (!verified) {
       console.error('❌  HMAC verification failed');
-      return NextResponse.json({ ok: false, error: 'Invalid signature' }, { status: 401 });
+      return NextResponse.json({ status: "error", message: 'Invalid signature' }, { status: 401 });
     }
 
     /* -------- parse + extract data ------------ */
@@ -103,8 +106,9 @@ export async function POST(req: Request) {
     const patient = extractPatientData(payload);
 
     if (Object.keys(patient).length === 0) {
+      console.error('❌ No patient data found in payload');
       return NextResponse.json(
-        { ok: false, error: 'No patient data found in payload' },
+        { status: "error", message: 'No patient data found in payload' },
         { status: 400 },
       );
     }
@@ -126,17 +130,17 @@ export async function POST(req: Request) {
     /* -------- send via Resend ------------------ */
     const res = await resend.emails.send({
       from:    process.env.RESEND_FROM_EMAIL!,
-      to:      ['info@aisolutionshawaii.com'],
+      to:      ['marketing@dr329.com'],
       subject: `New Patient Intake – ${patient.patient_name || 'Unknown'}`,
       html: htmlContent,
       text: htmlContent.replace(/<[^>]+>/g, ''),
     });
 
     console.log('✅  Email sent:', res.data?.id);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ status: "success" });
 
   } catch (err) {
     console.error('🛑  Webhook error:', err);
-    return NextResponse.json({ ok: false, error: 'Internal error' }, { status: 500 });
+    return NextResponse.json({ status: "error", message: 'Internal server error' }, { status: 500 });
   }
 }

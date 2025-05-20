@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import EmailTemplate from '@/components/email/post-call-webhook-email';
+import EmailTemplate from '@/components/shared/post-call-webhook-email';
 import { render } from '@react-email/render';
 import * as React from 'react';
 

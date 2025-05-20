@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
-import EmailTemplate from '@/components/email/post-call-webhook-email';
+import EmailTemplate from '@/components/shared/post-call-webhook-email';
 import * as React from 'react';
 import crypto from 'crypto';
 

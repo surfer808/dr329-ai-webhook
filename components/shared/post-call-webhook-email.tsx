@@ -1,3 +1,4 @@
+// Patient intake email template
 import * as React from "react";
 
 interface EmailTemplateProps {

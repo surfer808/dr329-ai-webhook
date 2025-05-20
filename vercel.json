@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build",
+  "cleanUrls": true,
+  "ignoreCommand": "find . -name '*vercel-test*' -or -name '*TEMP*' | xargs rm -rf",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "public": false
+} 

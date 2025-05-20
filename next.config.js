@@ -11,7 +11,20 @@ const nextConfig = {
       ...config.watchOptions,
       ignored: ['**/%TEMP%/**', '**/vercel-test/**', '**/node_modules/**']
     };
+    
+    // Explicitly exclude problematic files
+    if (config.module && config.module.rules) {
+      config.module.rules.push({
+        test: /.*(%TEMP%|vercel-test).*/,
+        loader: 'ignore-loader',
+      });
+    }
+    
     return config;
+  },
+  // Explicitly exclude paths from being included in the build
+  onDemandEntries: {
+    exclude: [/%TEMP%/, /vercel-test/],
   }
 };
 

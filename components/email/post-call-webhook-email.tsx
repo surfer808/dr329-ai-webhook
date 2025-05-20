@@ -54,14 +54,14 @@ const EmailTemplate = ({
 
           {/* Footer */}
           <Section className="mt-[32px] text-center text-[#666] text-[12px] leading-[16px]">
-          <Text className="m-0">
-  © {new Date().getFullYear()} <strong>AI Solutions Hawaii</strong>. All rights reserved.
-</Text>
+            <Text className="m-0">
+              © {new Date().getFullYear()} <strong>Medical Marijuana Hawaii</strong>. All rights reserved.
+            </Text>
 
-            <Text className="m-0">123 Eye Care Boulevard, Honolulu, HI 96815</Text>
+            <Text className="m-0">123 Medical Cannabis Blvd, Honolulu, HI 96815</Text>
             <Text className="m-0">
               <a
-                href="https://eyedoctorshawaii.com/unsubscribe"
+                href="https://dr329.com/unsubscribe"
                 className="text-[#666] underline"
               >
                 Unsubscribe

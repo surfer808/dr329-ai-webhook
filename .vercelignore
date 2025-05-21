@@ -34,5 +34,5 @@ yarn-error.log*
 .vercel
 
 # Temporary directories
-%TEMP%/
-**/vercel-test/ 
+%TEMP%/**
+/vercel-test/** 

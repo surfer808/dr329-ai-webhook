@@ -11,7 +11,7 @@ import crypto from 'crypto';
 /* CONFIG                                                            */
 /* ------------------------------------------------------------------ */
 const resend = new Resend(process.env.RESEND_API_KEY!);
-const WEBHOOK_SECRET = process.env.ELEVENLABS_WEBHOOK_SECRET || '';
+const WEBHOOK_SECRET = process.env.ELEVENLABS_CONVAI_WEBHOOK_SECRET || '';
 
 /* ------------------------------------------------------------------ */
 /* HELPERS                                                           */

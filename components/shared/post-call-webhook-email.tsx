@@ -1,20 +1,20 @@
-// Start of code for components/shared/post-call-webhook-email.tsx
-
 // Patient intake email template
 import * as React from "react";
-// Import necessary components from @react-email/components for proper rendering
 import { Html, Head, Body, Container, Text, Section, Hr } from '@react-email/components';
 
-// This interface defines the structure of the props that the EmailTemplate component expects.
-// These names MUST match the camelCase keys in the 'emailProps' object in route.ts.
 interface EmailTemplateProps {
   patientName?: string;
   phoneNumber?: string;
   email?: string;
   dateOfBirth?: string;
   transcript?: string;
-  // All other fields from ElevenLabs Data Collection, mapped to camelCase
+  // All data collection fields from ElevenLabs
+  patientType?: string;
+  returningPatient?: string;
+  medicalCondition?: string;
   medicalDocumentationSupplied?: string;
+  medicalDocumentsSent?: string;
+  painAssessmentNeeded?: string;
   cannabisHelping?: string;
   sideEffects?: string;
   questionsForDoctor?: string;
@@ -23,105 +23,145 @@ interface EmailTemplateProps {
   conditionStartDate?: string;
 }
 
-// The React Functional Component (FC) receives the props defined above.
 const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
   patientName,
   phoneNumber,
   email,
   dateOfBirth,
   transcript,
-  // Destructure new props
+  patientType,
+  returningPatient,
+  medicalCondition,
   medicalDocumentationSupplied,
+  medicalDocumentsSent,
+  painAssessmentNeeded,
   cannabisHelping,
   sideEffects,
   questionsForDoctor,
   medicalConditionRenewal,
   currentMedications,
   conditionStartDate,
-}) => (
-  // Use Html, Head, Body, etc. from @react-email/components for best compatibility
-  <Html>
-    <Head />
-    <Body style={{ fontFamily: 'sans-serif', backgroundColor: '#ffffff', margin: 'auto', padding: '20px' }}>
-      <Container style={{ border: '1px solid #eaeaea', borderRadius: '5px', margin: '40px auto', padding: '20px', maxWidth: '600px' }}>
-        <Text style={{ fontSize: '24px', fontWeight: 'normal', textAlign: 'center', margin: '30px 0' }}>
-          New Patient Intake
-        </Text>
+}) => {
+  // Helper function to format email addresses
+  const formatEmail = (emailStr?: string) => {
+    if (!emailStr) return 'N/A';
+    // Replace common transcription errors
+    return emailStr
+      .replace(/ at /gi, '@')
+      .replace(/ dot /gi, '.')
+      .replace(/\s/g, '')
+      .toLowerCase();
+  };
 
-        {/* Core Patient Information */}
-        <Section>
-          <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-            <strong>Name:</strong> {patientName || 'N/A'}
+  return (
+    <Html>
+      <Head />
+      <Body style={{ fontFamily: 'sans-serif', backgroundColor: '#ffffff', margin: 'auto', padding: '20px' }}>
+        <Container style={{ border: '1px solid #eaeaea', borderRadius: '5px', margin: '40px auto', padding: '20px', maxWidth: '600px' }}>
+          <Text style={{ fontSize: '24px', fontWeight: 'normal', textAlign: 'center', margin: '30px 0' }}>
+            {patientType === 'renewal' ? 'Patient Renewal Intake' : 'New Patient Intake'}
           </Text>
-          <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-            <strong>Phone:</strong> {phoneNumber || 'N/A'}
-          </Text>
-          <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-            <strong>Email:</strong> {email || 'N/A'}
-          </Text>
-          <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-            <strong>Date of Birth:</strong> {dateOfBirth || 'N/A'}
-          </Text>
-        </Section>
 
-        <Hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '26px 0' }} />
+          {/* Core Patient Information */}
+          <Section>
+            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+              <strong>Patient Type:</strong> {patientType || 'N/A'} {returningPatient && `(Returning: ${returningPatient})`}
+            </Text>
+            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+              <strong>Name:</strong> {patientName || 'N/A'}
+            </Text>
+            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+              <strong>Phone:</strong> {phoneNumber || 'N/A'}
+            </Text>
+            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+              <strong>Email:</strong> {formatEmail(email)}
+            </Text>
+            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+              <strong>Date of Birth:</strong> {dateOfBirth || 'N/A'}
+            </Text>
+          </Section>
 
-        {/* Additional Details from ElevenLabs Data Collection */}
-        <Text style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
-          Medical & Intake Details
-        </Text>
-        <Section>
-          {medicalConditionRenewal && (
+          <Hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '26px 0' }} />
+
+          {/* Medical Information */}
+          <Text style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
+            Medical Information
+          </Text>
+          <Section>
             <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-              <strong>Medical Condition (Renewal):</strong> {medicalConditionRenewal}
+              <strong>Medical Condition:</strong> {medicalCondition || medicalConditionRenewal || 'N/A'}
             </Text>
-          )}
-          {conditionStartDate && (
+            {conditionStartDate && (
+              <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+                <strong>Condition Start Date:</strong> {conditionStartDate}
+              </Text>
+            )}
+            {currentMedications && (
+              <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+                <strong>Current Medications:</strong> {currentMedications}
+              </Text>
+            )}
             <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-              <strong>Condition Start Date:</strong> {conditionStartDate}
+              <strong>Medical Documentation Supplied:</strong> {medicalDocumentationSupplied || 'N/A'}
             </Text>
-          )}
-          {currentMedications && (
             <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-              <strong>Current Medications:</strong> {currentMedications}
+              <strong>Medical Documents Sent to Us:</strong> {medicalDocumentsSent || 'N/A'}
             </Text>
+            {painAssessmentNeeded && (
+              <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333', backgroundColor: painAssessmentNeeded === 'yes' ? '#fff3cd' : 'transparent', padding: painAssessmentNeeded === 'yes' ? '5px' : '0', borderRadius: '4px' }}>
+                <strong>Pain Assessment Form Needed:</strong> {painAssessmentNeeded}
+              </Text>
+            )}
+          </Section>
+
+          {/* Renewal-specific Information */}
+          {(cannabisHelping || sideEffects) && (
+            <>
+              <Hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '26px 0' }} />
+              <Text style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
+                Renewal Information
+              </Text>
+              <Section>
+                {cannabisHelping && (
+                  <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+                    <strong>Is Medical Cannabis Helping:</strong> {cannabisHelping}
+                  </Text>
+                )}
+                {sideEffects && (
+                  <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
+                    <strong>Side Effects:</strong> {sideEffects}
+                  </Text>
+                )}
+              </Section>
+            </>
           )}
-          {medicalDocumentationSupplied && (
-            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-              <strong>Medical Documents Supplied:</strong> {medicalDocumentationSupplied}
-            </Text>
-          )}
-          {cannabisHelping && (
-            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-              <strong>Is Medical Cannabis Helping:</strong> {cannabisHelping}
-            </Text>
-          )}
-          {sideEffects && (
-            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-              <strong>Side Effects:</strong> {sideEffects}
-            </Text>
-          )}
+
+          {/* Questions for Doctor */}
           {questionsForDoctor && (
-            <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333' }}>
-              <strong>Questions for Doctor:</strong> {questionsForDoctor}
-            </Text>
+            <>
+              <Hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '26px 0' }} />
+              <Text style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
+                Questions for Doctor
+              </Text>
+              <Text style={{ fontSize: '14px', lineHeight: '24px', color: '#333', backgroundColor: '#e8f4f8', padding: '10px', borderRadius: '4px' }}>
+                {questionsForDoctor}
+              </Text>
+            </>
           )}
-        </Section>
 
-        <Hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '26px 0' }} />
+          <Hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '26px 0' }} />
 
-        {/* Call Transcript */}
-        <Text style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
-          Transcript
-        </Text>
-        <Text style={{ fontSize: '14px', lineHeight: '20px', color: '#333', whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px' }}>
-          {transcript || 'No transcript available.'}
-        </Text>
-      </Container>
-    </Body>
-  </Html>
-);
+          {/* Call Transcript */}
+          <Text style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
+            Full Conversation Transcript
+          </Text>
+          <Text style={{ fontSize: '14px', lineHeight: '20px', color: '#333', whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px' }}>
+            {transcript || 'No transcript available.'}
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
+};
 
 export default EmailTemplate;
-
-// End of code for components/shared/post-call-webhook-email.tsx
